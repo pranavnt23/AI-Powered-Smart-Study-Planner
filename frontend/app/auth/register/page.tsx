@@ -25,7 +25,7 @@ export default function RegisterPage() {
 
           <Link
             href="/auth/login"
-            className="text-cyan-300 hover:text-cyan-200"
+            className="text-cyan-300 hover:text-cyan-200 underline underline-offset-2 font-semibold"
           >
             Login
           </Link>

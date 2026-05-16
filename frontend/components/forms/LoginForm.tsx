@@ -37,10 +37,12 @@ export default function LoginForm() {
       alert(response.message);
 
     } catch (error: any) {
-      alert(
-        error.response?.data?.message ||
-        "Login failed"
-      );
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Login failed";
+
+      alert(message);
     }
   };
 

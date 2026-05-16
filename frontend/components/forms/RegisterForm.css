@@ -21,14 +21,15 @@
   padding: 16px 18px;
   border-radius: 18px;
 
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
 
-  color: white;
+  color: #fff;
+  caret-color: #fff;
   font-size: 15px;
 
-  transition: all 0.3s ease;
+  transition: all 0.18s ease;
 
   backdrop-filter: blur(10px);
 }
@@ -40,7 +41,7 @@
 .register-input-group input:focus {
   border-color: #6366f1;
 
-  box-shadow: 0 0 18px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.18);
 }
 
 .register-form button {
@@ -71,6 +72,57 @@
   transform: translateY(-2px) scale(1.02);
 
   box-shadow: 0 15px 35px rgba(139, 92, 246, 0.45);
+}
+
+.email-verification-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.otp-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.email-verification-row input,
+.otp-row input {
+  width: 100%;
+}
+
+.verification-button {
+  align-self: flex-end;
+  min-width: 96px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(59, 130, 246, 0.95);
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.verification-button:hover {
+  transform: translateY(-1px);
+}
+
+.verification-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.status-message {
+  margin-top: -10px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.status-message.success {
+  color: #4ade80;
+}
+
+.status-message.error {
+  color: #fca5a5;
 }
 
 @media (max-width: 640px) {

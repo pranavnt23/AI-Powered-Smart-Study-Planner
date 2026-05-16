@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+﻿from pydantic import BaseModel
 from pydantic import EmailStr
 
 class RegisterSchema(BaseModel):
@@ -9,3 +9,10 @@ class RegisterSchema(BaseModel):
 class LoginSchema(BaseModel):
     email: EmailStr
     password: str
+
+class SendOtpSchema(BaseModel):
+    email: EmailStr
+
+class VerifyOtpSchema(BaseModel):
+    email: EmailStr
+    otp: str
