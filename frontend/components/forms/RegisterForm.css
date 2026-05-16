@@ -1,0 +1,84 @@
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.register-input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.register-input-group label {
+  font-size: 14px;
+  color: #cbd5e1;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.register-input-group input {
+  width: 100%;
+  padding: 16px 18px;
+  border-radius: 18px;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  background: rgba(255, 255, 255, 0.05);
+
+  color: white;
+  font-size: 15px;
+
+  transition: all 0.3s ease;
+
+  backdrop-filter: blur(10px);
+}
+
+.register-input-group input::placeholder {
+  color: #94a3b8;
+}
+
+.register-input-group input:focus {
+  border-color: #6366f1;
+
+  box-shadow: 0 0 18px rgba(99, 102, 241, 0.3);
+}
+
+.register-form button {
+  width: 100%;
+  padding: 16px;
+
+  border: none;
+  border-radius: 18px;
+
+  background: linear-gradient(
+    135deg,
+    #8b5cf6,
+    #06b6d4
+  );
+
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+
+  box-shadow: 0 10px 25px rgba(139, 92, 246, 0.35);
+}
+
+.register-form button:hover {
+  transform: translateY(-2px) scale(1.02);
+
+  box-shadow: 0 15px 35px rgba(139, 92, 246, 0.45);
+}
+
+@media (max-width: 640px) {
+  .register-input-group input {
+    padding: 14px 16px;
+  }
+
+  .register-form button {
+    padding: 14px;
+  }
+}
