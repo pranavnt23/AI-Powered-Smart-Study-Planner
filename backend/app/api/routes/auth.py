@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 import os
 import random
@@ -22,6 +22,17 @@ from app.core.security import hash_otp, verify_otp_hash
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 logger = logging.getLogger(__name__)
+
+
+def utc_now():
+    return datetime.now(timezone.utc)
+
+
+def as_aware_utc(value: datetime):
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+
+    return value.astimezone(timezone.utc)
 
 
 def get_db():
@@ -187,7 +198,7 @@ def send_otp(
 ):
     email = normalize_email(data.email)
     otp = generate_otp()
-    expires_at = datetime.utcnow() + timedelta(minutes=10)
+    expires_at = utc_now() + timedelta(minutes=10)
     otp_hash = hash_otp(otp)
 
     verification = EmailVerification(
@@ -263,7 +274,7 @@ def verify_otp(
             }
         )
 
-    if datetime.utcnow() > record.expires_at:
+    if utc_now() > as_aware_utc(record.expires_at):
         record.is_used = True
         db.commit()
         raise HTTPException(
@@ -284,7 +295,7 @@ def verify_otp(
         )
 
     record.is_used = True
-    record.verified_at = datetime.utcnow()
+    record.verified_at = utc_now()
     db.commit()
 
     return {

@@ -61,8 +61,15 @@ export default function DashboardPage() {
 
   const router = useRouter();
 
-  const handleSend = () => {
-    if (!chatInput.trim()) return;
+  const handleSend = (attachmentNames: string[] = []) => {
+    const messageText = chatInput.trim();
+
+    if (!messageText && attachmentNames.length === 0) return;
+
+    const attachmentText = attachmentNames.length
+      ? `Attached documents: ${attachmentNames.join(", ")}`
+      : "";
+    const composedMessage = [messageText, attachmentText].filter(Boolean).join("\n\n");
 
     setConversations((previous) =>
       previous.map((conversation) => {
@@ -73,12 +80,12 @@ export default function DashboardPage() {
         return {
           ...conversation,
           updated: "Now",
-          snippet: chatInput.trim().slice(0, 120),
+          snippet: composedMessage.slice(0, 120),
           messages: [
             ...conversation.messages,
             {
               from: "user",
-              message: chatInput.trim(),
+              message: composedMessage,
               time: getCurrentTime(),
             },
           ],
@@ -96,8 +103,8 @@ export default function DashboardPage() {
       if (sessionId) {
         await logoutUser({ session_id: Number(sessionId) });
       }
-    } catch (error) {
-      console.error("Logout error:", error);
+    } catch {
+      // Local logout should still succeed if the backend session is already gone.
     } finally {
       window.localStorage.removeItem("token");
       window.localStorage.removeItem("sessionId");
@@ -140,15 +147,6 @@ export default function DashboardPage() {
               </button>
             ))}
           </nav>
-          <div className="mt-3 flex items-center gap-3">
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="inline-flex items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-200 transition-all duration-200 hover:bg-red-500/15"
-            >
-              Sign out
-            </button>
-          </div>
           {activeSection === "chat" ? (
             <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
               <button
@@ -253,6 +251,16 @@ export default function DashboardPage() {
                         </div>
                       </div>
                     </div>
+                  </div>
+
+                  <div className="mt-6 flex justify-end border-t border-white/10 pt-6">
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="inline-flex items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3 text-sm font-semibold text-red-200 transition-all duration-200 hover:bg-red-500/15"
+                    >
+                      Sign out
+                    </button>
                   </div>
                 </div>
               )}

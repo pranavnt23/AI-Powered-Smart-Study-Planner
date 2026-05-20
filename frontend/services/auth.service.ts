@@ -1,4 +1,4 @@
-﻿import api from "@/lib/axios";
+﻿import api, { getCurrentApiBaseUrl } from "@/lib/axios";
 
 import {
   RegisterPayload,
@@ -76,10 +76,45 @@ export const loginUser = async (
   data: LoginPayload
 ) => {
   try {
+    console.log(`Login request API: ${getCurrentApiBaseUrl()}/auth/login`);
     const response = await api.post("/auth/login", data);
     return response.data?.data ?? response.data;
   } catch (error) {
     throw new Error(getApiErrorMessage(error, "Unable to sign in. Verify your credentials and try again."));
+  }
+};
+
+export const checkBackendConnection = async () => {
+  const apiUrl = getCurrentApiBaseUrl();
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 5000);
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(data?.message || `Backend returned ${response.status}`);
+    }
+
+    return {
+      ok: true,
+      message: `${data?.message || "Backend reachable."} API: ${apiUrl}`,
+      data,
+    };
+  } catch (error) {
+    const message =
+      error instanceof DOMException && error.name === "AbortError"
+        ? `Backend check timed out at ${apiUrl}`
+        : getApiErrorMessage(error, `Unable to reach backend at ${apiUrl}`);
+
+    throw new Error(message);
+  } finally {
+    window.clearTimeout(timeoutId);
   }
 };
 

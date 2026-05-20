@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models.user import User
@@ -10,6 +11,10 @@ from app.core.security import (
     verify_password,
     create_access_token
 )
+
+
+def utc_now():
+    return datetime.now(timezone.utc)
 
 def register_user(
     db: Session,
@@ -45,10 +50,10 @@ def login_user(
     email: str,
     password: str
 ):
-    email = email.strip().lower()
+    login_id = email.strip().lower()
 
     user = db.query(User).filter(
-        User.email == email
+        (User.email == login_id) | (func.lower(User.username) == login_id)
     ).first()
 
     if not user:
@@ -65,10 +70,10 @@ def login_user(
         "email": user.email
     })
 
-    user.last_login = datetime.utcnow()
+    user.last_login = utc_now()
     db.add(user)
 
-    expires_at = datetime.utcnow() + timedelta(minutes=30)
+    expires_at = utc_now() + timedelta(minutes=30)
     session_record = UserSession(
         user_id=user.id,
         session_token=token,
