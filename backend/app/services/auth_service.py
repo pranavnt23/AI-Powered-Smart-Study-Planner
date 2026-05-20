@@ -1,6 +1,9 @@
+from datetime import datetime, timedelta
+
 from sqlalchemy.orm import Session
 
 from app.models.user import User
+from app.models.session import UserSession
 
 from app.core.security import (
     hash_password,
@@ -14,6 +17,7 @@ def register_user(
     email: str,
     password: str
 ):
+    email = email.strip().lower()
 
     existing_user = db.query(User).filter(
         User.email == email
@@ -25,7 +29,7 @@ def register_user(
     hashed_password = hash_password(password)
 
     new_user = User(
-        username=username,
+        username=username.strip(),
         email=email,
         password_hash=hashed_password
     )
@@ -41,26 +45,64 @@ def login_user(
     email: str,
     password: str
 ):
+    email = email.strip().lower()
 
     user = db.query(User).filter(
         User.email == email
     ).first()
 
     if not user:
-        return None
+        return "not_found"
 
     if not verify_password(
         password,
         user.password_hash
     ):
-        return None
+        return "invalid_credentials"
 
     token = create_access_token({
         "sub": str(user.id),
         "email": user.email
     })
 
+    user.last_login = datetime.utcnow()
+    db.add(user)
+
+    expires_at = datetime.utcnow() + timedelta(minutes=30)
+    session_record = UserSession(
+        user_id=user.id,
+        session_token=token,
+        expires_at=expires_at,
+        is_active=True
+    )
+
+    db.add(session_record)
+    db.commit()
+    db.refresh(session_record)
+
     return {
         "access_token": token,
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "session_id": session_record.id,
+        "expires_at": expires_at.isoformat()
     }
+
+
+def logout_session(
+    db: Session,
+    session_id: int
+):
+    session = db.query(UserSession).filter(
+        UserSession.id == session_id,
+        UserSession.is_active == True
+    ).first()
+
+    if not session:
+        return None
+
+    session.is_active = False
+    db.add(session)
+    db.commit()
+    db.refresh(session)
+
+    return session

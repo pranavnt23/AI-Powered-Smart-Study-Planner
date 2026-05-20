@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import "./RegisterForm.css";
 
@@ -15,14 +16,35 @@ export default function RegisterForm() {
     username: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
   const [otpValue, setOtpValue] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{
+    username?: string;
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+    otp?: string;
+  }>({});
   const [statusMessage, setStatusMessage] = useState("");
   const [statusType, setStatusType] = useState<"error" | "success" | "">("");
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const router = useRouter();
+
+  const validateEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const clearFieldError = (field: keyof typeof fieldErrors) => {
+    setFieldErrors((prev) => ({
+      ...prev,
+      [field]: undefined,
+    }));
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -41,11 +63,23 @@ export default function RegisterForm() {
       ...formData,
       [name]: value,
     });
+
+    clearFieldError(name as keyof typeof fieldErrors);
   };
 
   const handleSendOtp = async () => {
-    if (!formData.email) {
-      setStatusMessage("Enter a valid email address before sending OTP.");
+    const email = formData.email.trim();
+
+    if (!email) {
+      setFieldErrors({ email: "Email address is required." });
+      setStatusMessage("Enter the email address you want to verify.");
+      setStatusType("error");
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setFieldErrors({ email: "Enter a valid email address, for example name@example.com." });
+      setStatusMessage("Use a valid email address to receive the verification code.");
       setStatusType("error");
       return;
     }
@@ -53,6 +87,7 @@ export default function RegisterForm() {
     setSendingOtp(true);
     setStatusMessage("");
     setStatusType("");
+    setFieldErrors({});
 
     try {
       await sendOtp({ email: formData.email });
@@ -73,8 +108,9 @@ export default function RegisterForm() {
   };
 
   const handleVerifyOtp = async () => {
-    if (!otpValue) {
-      setStatusMessage("Enter the OTP sent to your email.");
+    if (!otpValue.trim()) {
+      setFieldErrors({ otp: "One-time password is required." });
+      setStatusMessage("Enter the OTP code that was emailed to you.");
       setStatusType("error");
       return;
     }
@@ -82,6 +118,7 @@ export default function RegisterForm() {
     setVerifyingOtp(true);
     setStatusMessage("");
     setStatusType("");
+    setFieldErrors({});
 
     try {
       await verifyOtp({
@@ -110,17 +147,56 @@ export default function RegisterForm() {
   ) => {
     e.preventDefault();
 
+    const errors: typeof fieldErrors = {};
+
+    if (!formData.username.trim()) {
+      errors.username = "Username is required.";
+    }
+
+    if (!formData.email.trim()) {
+      errors.email = "Email address is required.";
+    } else if (!validateEmail(formData.email.trim())) {
+      errors.email = "Enter a valid email address, for example name@example.com.";
+    }
+
+    if (!formData.password.trim()) {
+      errors.password = "Password is required.";
+    } else if (formData.password.length < 8) {
+      errors.password = "Password must be at least 8 characters long.";
+    }
+
+    if (!formData.confirmPassword.trim()) {
+      errors.confirmPassword = "Confirm your password.";
+    } else if (formData.confirmPassword !== formData.password) {
+      errors.confirmPassword = "Passwords do not match.";
+    }
+
     if (!emailVerified) {
+      errors.email = errors.email || "Email verification is required before creating your account.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       setStatusMessage(
-        "Please verify your email before creating an account."
+        "Review the highlighted fields and fix any errors before submitting."
       );
       setStatusType("error");
       return;
     }
 
+    setSubmitting(true);
+    setStatusMessage("");
+    setStatusType("");
+
     try {
-      const response = await registerUser(formData);
-      alert(response.message);
+      const response = await registerUser({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      });
+      setStatusMessage(response.message);
+      setStatusType("success");
+      router.push("/dashboard");
     } catch (error: any) {
       const message =
         error instanceof Error
@@ -129,11 +205,13 @@ export default function RegisterForm() {
 
       setStatusMessage(message);
       setStatusType("error");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="register-form">
+    <form onSubmit={handleSubmit} className="register-form" noValidate>
       <div className="register-input-group">
         <label>Username</label>
 
@@ -143,8 +221,12 @@ export default function RegisterForm() {
           placeholder="Enter your username"
           onChange={handleChange}
           value={formData.username}
-          required
+          className={fieldErrors.username ? "input-error" : ""}
         />
+
+        {fieldErrors.username && (
+          <p className="field-error">{fieldErrors.username}</p>
+        )}
       </div>
 
       <div className="register-input-group">
@@ -157,7 +239,7 @@ export default function RegisterForm() {
             placeholder="Enter your email"
             onChange={handleChange}
             value={formData.email}
-            required
+            className={fieldErrors.email ? "input-error" : ""}
           />
 
           <button
@@ -169,6 +251,9 @@ export default function RegisterForm() {
             {emailVerified ? "Verified" : sendingOtp ? "Sending…" : "Verify Mail"}
           </button>
         </div>
+        {fieldErrors.email && (
+          <p className="field-error">{fieldErrors.email}</p>
+        )}
       </div>
 
       {otpSent && !emailVerified && (
@@ -181,8 +266,13 @@ export default function RegisterForm() {
               name="otp"
               placeholder="Enter OTP"
               value={otpValue}
-              onChange={(e) => setOtpValue(e.target.value)}
-              required
+              onChange={(e) => {
+                setOtpValue(e.target.value);
+                if (fieldErrors.otp) {
+                  setFieldErrors((prev) => ({ ...prev, otp: undefined }));
+                }
+              }}
+              className={fieldErrors.otp ? "input-error" : ""}
             />
 
             <button
@@ -194,6 +284,9 @@ export default function RegisterForm() {
               {verifyingOtp ? "Verifying…" : "Verify"}
             </button>
           </div>
+          {fieldErrors.otp && (
+            <p className="field-error">{fieldErrors.otp}</p>
+          )}
         </div>
       )}
 
@@ -206,8 +299,30 @@ export default function RegisterForm() {
           placeholder="Create your password"
           onChange={handleChange}
           value={formData.password}
-          required
+          className={fieldErrors.password ? "input-error" : ""}
         />
+        <p className="field-help">
+          Use at least 8 characters for a secure password.
+        </p>
+        {fieldErrors.password && (
+          <p className="field-error">{fieldErrors.password}</p>
+        )}
+      </div>
+
+      <div className="register-input-group">
+        <label>Confirm Password</label>
+
+        <input
+          type="password"
+          name="confirmPassword"
+          placeholder="Re-enter your password"
+          onChange={handleChange}
+          value={formData.confirmPassword}
+          className={fieldErrors.confirmPassword ? "input-error" : ""}
+        />
+        {fieldErrors.confirmPassword && (
+          <p className="field-error">{fieldErrors.confirmPassword}</p>
+        )}
       </div>
 
       {statusMessage && (
@@ -216,8 +331,8 @@ export default function RegisterForm() {
         </p>
       )}
 
-      <button type="submit" disabled={!emailVerified}>
-        Create Account
+      <button type="submit" disabled={submitting}>
+        {submitting ? "Creating account…" : "Create Account"}
       </button>
     </form>
   );

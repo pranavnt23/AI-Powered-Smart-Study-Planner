@@ -16,3 +16,6 @@ class SendOtpSchema(BaseModel):
 class VerifyOtpSchema(BaseModel):
     email: EmailStr
     otp: str
+
+class LogoutSchema(BaseModel):
+    session_id: int

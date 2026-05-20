@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import "./LoginForm.css";
 
@@ -11,14 +12,33 @@ export default function LoginForm() {
     email: "",
     password: "",
   });
+  const [formErrors, setFormErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
+  const [statusMessage, setStatusMessage] = useState("");
+  const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
+
+  const validateEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
+    const { name, value } = e.target;
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+
+    setFormErrors((prev) => ({
+      ...prev,
+      [name]: undefined,
+    }));
+    setStatusMessage("");
   };
 
   const handleSubmit = async (
@@ -26,23 +46,47 @@ export default function LoginForm() {
   ) => {
     e.preventDefault();
 
+    const errors: typeof formErrors = {};
+
+    if (!formData.email.trim()) {
+      errors.email = "Email address is required.";
+    } else if (!validateEmail(formData.email.trim())) {
+      errors.email = "Enter a valid email address, for example name@example.com.";
+    }
+
+    if (!formData.password.trim()) {
+      errors.password = "Password is required.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      setStatusMessage("Review the highlighted fields and correct any errors.");
+      return;
+    }
+
     try {
+      setSubmitting(true);
       const response = await loginUser(formData);
 
-      localStorage.setItem(
-        "token",
-        response.data.access_token
-      );
+      localStorage.setItem("token", response.access_token);
+      if (response.session_id) {
+        localStorage.setItem("sessionId", String(response.session_id));
+      }
+      if (response.expires_at) {
+        localStorage.setItem("tokenExpiresAt", response.expires_at);
+      }
 
-      alert(response.message);
-
+      setStatusMessage("Login successful. Redirecting to dashboard...");
+      router.push("/dashboard");
     } catch (error: any) {
       const message =
         error instanceof Error
           ? error.message
-          : "Login failed";
+          : "Unable to sign in at this time.";
 
-      alert(message);
+      setStatusMessage(message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -50,6 +94,7 @@ export default function LoginForm() {
     <form
       onSubmit={handleSubmit}
       className="login-form"
+      noValidate
     >
       <div className="login-input-group">
         <label>Email Address</label>
@@ -59,8 +104,12 @@ export default function LoginForm() {
           name="email"
           placeholder="Enter your email"
           onChange={handleChange}
-          required
+          value={formData.email}
+          className={formErrors.email ? "input-error" : ""}
         />
+        {formErrors.email && (
+          <p className="field-error">{formErrors.email}</p>
+        )}
       </div>
 
       <div className="login-input-group">
@@ -71,12 +120,22 @@ export default function LoginForm() {
           name="password"
           placeholder="Enter your password"
           onChange={handleChange}
-          required
+          value={formData.password}
+          className={formErrors.password ? "input-error" : ""}
         />
+        {formErrors.password && (
+          <p className="field-error">{formErrors.password}</p>
+        )}
       </div>
 
-      <button type="submit">
-        Login
+      {statusMessage && (
+        <p className="field-error" style={{ marginBottom: 8 }}>
+          {statusMessage}
+        </p>
+      )}
+
+      <button type="submit" disabled={submitting}>
+        {submitting ? "Signing in…" : "Login"}
       </button>
     </form>
   );

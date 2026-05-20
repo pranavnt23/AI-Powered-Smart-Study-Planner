@@ -17,3 +17,7 @@ export interface VerifyOtpPayload {
   email: string;
   otp: string;
 }
+
+export interface LogoutPayload {
+  session_id: number;
+}
