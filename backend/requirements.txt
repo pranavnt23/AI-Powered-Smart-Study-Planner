@@ -1,6 +1,3 @@
-# Backend dependencies pinned for reproducible deployments.
-# Install with: python -m pip install -r requirements.txt
-
 fastapi==0.109.0
 uvicorn[standard]==0.23.2
 sqlalchemy==2.0.27
@@ -10,3 +7,5 @@ passlib[bcrypt]==1.7.4
 python-jose[cryptography]==3.3.0
 pydantic==2.6.0
 email-validator==2.0.0
+python-docx==1.1.0
+python-multipart==0.0.9
