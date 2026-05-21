@@ -1,49 +1,230 @@
 "use client";
 
-import { useRef, ChangeEvent, Dispatch, SetStateAction, useState } from "react";
 import { ChatConversation } from "./types";
 
 type ChatWindowProps = {
   selectedChat: ChatConversation;
 };
 
-export function ChatWindow({ selectedChat }: ChatWindowProps) {
-  return (
-    <div className="flex min-h-[calc(100vh-340px)] flex-col gap-6 rounded-[32px] bg-slate-950/90 p-6">
-      <div className="flex items-center justify-between gap-4 rounded-3xl border border-white/10 bg-slate-900/80 p-5">
-        <div>
-          <p className="text-sm uppercase tracking-[0.24em] text-cyan-300/80">Conversation</p>
-          <h3 className="mt-2 text-2xl font-bold text-white">{selectedChat.title}</h3>
-        </div>
-        <div className="inline-flex items-center gap-3 rounded-3xl bg-slate-950/80 px-4 py-2 text-sm text-slate-300">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-cyan-300/10 text-cyan-300">💡</span>
-          Updated {selectedChat.updated}
-        </div>
-      </div>
+const getFileIcon = (name: string) => {
+  const extension = name.split(".").pop()?.toLowerCase();
 
-      <div className="flex-1 space-y-4 overflow-y-auto pr-2">
-        {selectedChat.messages.map((message, index) => (
-          <div
-            key={index}
-            className={`max-w-[90%] rounded-[28px] border px-5 py-4 shadow-sm ${
-              message.from === "assistant"
-                ? "border-white/10 bg-slate-900/80 text-slate-200"
-                : "ml-auto border-cyan-400/10 bg-cyan-500/10 text-cyan-100"
-            }`}
-          >
-            <div className="flex items-start gap-3">
-              <span className={`mt-1 inline-flex h-8 w-8 items-center justify-center rounded-2xl text-sm ${
-                message.from === "assistant" ? "bg-slate-900/90 text-cyan-300" : "bg-cyan-500/20 text-cyan-100"
-              }`}>
-                {message.from === "assistant" ? "A" : "Y"}
-              </span>
-              <div>
-                <p className="leading-7">{message.message}</p>
-                <p className="mt-3 text-xs text-slate-500">{message.from === "assistant" ? "StudyBot" : "You"} • {message.time}</p>
-              </div>
-            </div>
-          </div>
-        ))}
+  switch (extension) {
+    case "pdf":
+      return "PDF";
+
+    case "doc":
+    case "docx":
+      return "DOC";
+
+    case "txt":
+      return "TXT";
+
+    case "csv":
+      return "CSV";
+
+    case "md":
+      return "MD";
+
+    case "json":
+      return "JSON";
+
+    case "ppt":
+    case "pptx":
+      return "PPT";
+
+    case "png":
+    case "jpg":
+    case "jpeg":
+      return "IMG";
+
+    default:
+      return "FILE";
+  }
+};
+
+export function ChatWindow({
+  selectedChat,
+}: ChatWindowProps) {
+  return (
+    <div className="flex h-full flex-col bg-slate-950/90">
+
+      {/* SCROLLABLE CHAT AREA */}
+
+      <div className="flex-1 overflow-y-auto px-3 py-4 sm:px-5 lg:px-8">
+
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-5">
+
+          {selectedChat.messages.map(
+            (message, index) => {
+
+              const isUser =
+                message.from === "user";
+
+              return (
+                <div
+                  key={index}
+                  className={`flex w-full ${
+                    isUser
+                      ? "justify-end"
+                      : "justify-start"
+                  }`}
+                >
+
+                  {/* MESSAGE CARD */}
+
+                  <div
+                    className={`
+                      relative
+                      w-fit
+                      max-w-[92%]
+                      sm:max-w-[82%]
+                      lg:max-w-[72%]
+                      rounded-3xl
+                      px-4
+                      py-4
+                      shadow-xl
+                      transition-all
+                      duration-200
+                      ${
+                        isUser
+                          ? "bg-gradient-to-r from-cyan-400 to-indigo-500 text-slate-950"
+                          : "border border-white/10 bg-slate-900/90 text-slate-100"
+                      }
+                    `}
+                  >
+
+                    {/* ATTACHMENTS */}
+
+                    {message.attachments &&
+                    message.attachments.length >
+                      0 ? (
+
+                      <div className="mb-4 flex flex-col gap-3">
+
+                        {message.attachments.map(
+                          (
+                            file,
+                            fileIndex
+                          ) => (
+                            <div
+                              key={fileIndex}
+                              className={`
+                                flex
+                                items-center
+                                gap-3
+                                rounded-2xl
+                                border
+                                p-3
+                                backdrop-blur-xl
+                                ${
+                                  isUser
+                                    ? "border-slate-900/10 bg-slate-950/10"
+                                    : "border-white/10 bg-white/5"
+                                }
+                              `}
+                            >
+
+                              {/* FILE ICON */}
+
+                              <div
+                                className={`
+                                  flex
+                                  h-12
+                                  w-12
+                                  shrink-0
+                                  items-center
+                                  justify-center
+                                  rounded-2xl
+                                  text-xs
+                                  font-bold
+                                  shadow-lg
+                                  ${
+                                    isUser
+                                      ? "bg-slate-950/20 text-slate-900"
+                                      : "bg-cyan-400/10 text-cyan-300"
+                                  }
+                                `}
+                              >
+                                {getFileIcon(file)}
+                              </div>
+
+                              {/* FILE DETAILS */}
+
+                              <div className="min-w-0 flex-1">
+
+                                <p
+                                  className={`
+                                    truncate
+                                    text-sm
+                                    font-semibold
+                                    ${
+                                      isUser
+                                        ? "text-slate-900"
+                                        : "text-white"
+                                    }
+                                  `}
+                                >
+                                  {file}
+                                </p>
+
+                                <p
+                                  className={`
+                                    mt-1
+                                    text-xs
+                                    ${
+                                      isUser
+                                        ? "text-slate-800/70"
+                                        : "text-slate-500"
+                                    }
+                                  `}
+                                >
+                                  Uploaded document
+                                </p>
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    ) : null}
+
+                    {/* MESSAGE CONTENT */}
+
+                    {message.message && (
+                      <p
+                        className={`
+                          whitespace-pre-wrap
+                          break-words
+                          text-sm
+                          leading-7
+                          sm:text-[15px]
+                        `}
+                      >
+                        {message.message}
+                      </p>
+                    )}
+
+                    {/* TIME */}
+
+                    <div
+                      className={`
+                        mt-3
+                        text-[11px]
+                        ${
+                          isUser
+                            ? "text-slate-800/80"
+                            : "text-slate-500"
+                        }
+                      `}
+                    >
+                      {message.time}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+          )}
+        </div>
       </div>
     </div>
   );

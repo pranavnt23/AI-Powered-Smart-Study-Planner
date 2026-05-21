@@ -1,14 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import "./LoginForm.css";
 
-import { checkBackendConnection, loginUser } from "@/services/auth.service";
-import { getCurrentApiBaseUrl } from "@/lib/axios";
-
-const FRONTEND_BUILD_MARKER = "direct-api-v4";
+import { loginUser } from "@/services/auth.service";
 
 export default function LoginForm() {
   const [formData, setFormData] = useState({
@@ -20,41 +17,8 @@ export default function LoginForm() {
     password?: string;
   }>({});
   const [statusMessage, setStatusMessage] = useState("");
-  const [connectionStatus, setConnectionStatus] = useState<{
-    type: "checking" | "success" | "error";
-    message: string;
-  }>({
-    type: "checking",
-    message: "Checking backend connection...",
-  });
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
-
-  const runConnectionCheck = useCallback(async () => {
-    const apiUrl = getCurrentApiBaseUrl();
-
-    setConnectionStatus({
-      type: "checking",
-      message: `Frontend ${FRONTEND_BUILD_MARKER}. Trying ${apiUrl}`,
-    });
-
-    try {
-      const result = await checkBackendConnection();
-      setConnectionStatus({
-        type: "success",
-        message: result.message,
-      });
-    } catch (error) {
-      setConnectionStatus({
-        type: "error",
-        message: error instanceof Error ? error.message : "Backend connection check failed.",
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    void runConnectionCheck();
-  }, [runConnectionCheck]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -176,17 +140,6 @@ export default function LoginForm() {
       <button type="button" disabled={submitting} onClick={() => void handleSubmit()}>
         {submitting ? "Signing in..." : "Login"}
       </button>
-
-      <div className={`connection-status ${connectionStatus.type}`}>
-        <div>
-          <span>Backend</span>
-          <p>{connectionStatus.message}</p>
-          <small>Frontend build: {FRONTEND_BUILD_MARKER}</small>
-        </div>
-        <button type="button" onClick={() => void runConnectionCheck()}>
-          Retry
-        </button>
-      </div>
     </form>
   );
 }

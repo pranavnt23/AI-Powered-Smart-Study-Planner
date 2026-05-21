@@ -1,0 +1,39 @@
+i need to do a project smart study planner
+i suggest me a good tech stack....what are all the things i need to do to build my site in modern day standards
+i am going to use tech stack such that it should not cause me any charges 
+i will not even pay a single rupee
+i will tell the features first then you suggest me a good tech stack and steps that i need to prepare to make my project more attractive what the today's company expects that i should know in ai
+it is going to give more importance to ai
+i will also not pay anything for ai tools....everything should be built by me or integerated if it is free
+
+now coming to features
+keep a register and login for my site
+i will upload the documents like pdf, images or any other study material formats like markdown, docx etc...
+you should give a rough overview of the syllabus
+(get the approval from the user whether it is correct or not)
+
+then give the estimated time taken to cover the syllabus, 
+how much importance should be given for which topic,
+if the input time is too less, then tell the user it is not possible to complete the entire syllabus, then think in the mentor point of view and then state the important topics to be covered and then make a plan accordingly
+
+if user gives two days, then give a plan for sleeping, studying, break, revision time, practice time etc.....
+include wherever needed
+
+then also keep a separate portal to get the user preferences like 
+amount of sleep time required by the user
+break time 
+revision time
+how fast the user can grasp a concept(to analyse this keep 3 levels of content - easy, medium, hard)
+give the time for the user to study for 1 mins each and then ask how much the user covered in the given text, 
+the user should highlight and submit, then analyze the score of the user accordingly
+everytime dont keep the same test. keep different test each time but the level should be maintained
+
+collect all the preference data for analysing when user gives the syllabus and asks for the schedule
+
+with all the above data give the syllabus 
+if the change it according to the feel of the user
+
+it is going to be a ai and cloud based project
+i am interested in going to the companies in any of the above two domain
+so suggest the ai and cloud things i need to do to get a deep knowledge in both
+i am going to work hard for this one month

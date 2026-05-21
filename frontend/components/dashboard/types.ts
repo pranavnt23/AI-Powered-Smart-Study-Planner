@@ -4,6 +4,7 @@ export type ChatMessage = {
   from: "assistant" | "user";
   message: string;
   time: string;
+  attachments?: string[];
 };
 
 export type ChatConversation = {
