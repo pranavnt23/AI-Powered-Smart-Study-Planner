@@ -1,11 +1,11 @@
 from pathlib import Path
 
 from app.services.processors.text_processor import TextProcessor
+from app.services.processors.docx_processor import DOCXProcessor
+from app.services.processors.ppt_processor import PPTProcessor
+from app.services.processors.pdf_processor import PDFProcessor
 
 # Future imports
-# from app.services.processors.pdf_processor import PDFProcessor
-# from app.services.processors.docx_processor import DOCXProcessor
-# from app.services.processors.ppt_processor import PPTProcessor
 # from app.services.processors.image_processor import ImageProcessor
 
 
@@ -17,11 +17,12 @@ class DocumentProcessor:
 
     PROCESSOR_MAP = {
         ".txt": TextProcessor,
+        ".docx": DOCXProcessor,
+        ".pdf": PDFProcessor,
+        ".ppt": PPTProcessor,
+        ".pptx": PPTProcessor,
 
         # Future expandable
-        # ".pdf": PDFProcessor,
-        # ".docx": DOCXProcessor,
-        # ".pptx": PPTProcessor,
         # ".png": ImageProcessor,
         # ".jpg": ImageProcessor,
         # ".jpeg": ImageProcessor,

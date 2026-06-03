@@ -311,14 +311,6 @@ export default function DashboardPage() {
                   <span className="rounded-2xl bg-white/5 px-4 py-2 text-sm text-slate-300">
                     {conversations.length} chats
                   </span>
-
-                  <button
-                    type="button"
-                    onClick={handleCreateNewChat}
-                    className="rounded-2xl bg-cyan-400/10 px-4 py-2 text-sm font-semibold text-cyan-200 transition hover:bg-cyan-400/20"
-                  >
-                    + New Chat
-                  </button>
                 </div>
               </div>
 
@@ -332,7 +324,7 @@ export default function DashboardPage() {
 
                 {/* STICKY FOOTER */}
 
-                <div className="shrink-0 border-t border-white/10 bg-slate-950/95 px-2 py-2 pb-3 sm:px-4 lg:px-6">
+                <div className="sticky bottom-0 z-20 shrink-0 border-t border-white/10 bg-slate-950/95 px-2 py-2 pb-3 sm:px-4 lg:px-6">
                   <ChatFooter
                     chatInput={chatInput}
                     setChatInput={setChatInput}

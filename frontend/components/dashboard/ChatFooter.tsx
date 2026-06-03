@@ -139,7 +139,10 @@ export function ChatFooter({
               name: file.name,
               type: typeLabel ?? "FILE",
               content:
-                response?.data?.data?.content ?? null,
+                response?.content ??
+                response?.text ??
+                response?.data?.content ??
+                null,
             };
           } catch {
             return {
