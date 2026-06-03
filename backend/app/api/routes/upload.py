@@ -61,10 +61,14 @@ async def upload_file(
         db.refresh(uploaded_file)
         result = DocumentProcessor.process_document(str(file_path))
 
+        # If the processor returned a nested data payload, unwrap it. Otherwise
+        # return the processor result directly so frontend receives extracted text.
+        processed_data = result["data"] if isinstance(result, dict) and "data" in result else result
+
         return {
             "status": True,
             "message": "File uploaded successfully",
-            "data": result
+            "data": processed_data
         }
 
     except Exception as e:

@@ -92,5 +92,6 @@ logs/
 
 # Local project artifacts
 /backend/__pycache__/
+/backend/app/uploads/
 /frontend/node_modules/
 

@@ -1,19 +1,18 @@
 from sqlalchemy import Column, Text, Boolean, Integer, String
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.sql import func
 import uuid
 
-from app.core.database import Base
+from app.core.database import Base, GUID
 
 
 class ExtractedDocument(Base):
 
     __tablename__ = "extracted_documents"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
     
-    file_id = Column(UUID(as_uuid=True), nullable=False)
+    file_id = Column(GUID, nullable=False)
     extracted_text = Column(Text, nullable=False)
     summary = Column(Text)
     syllabus_detected = Column(Boolean, default=False)
