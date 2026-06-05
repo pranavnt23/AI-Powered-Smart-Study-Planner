@@ -2,6 +2,7 @@ from pathlib import Path
 
 from app.services.processors.text_processor import TextProcessor
 from app.services.processors.docx_processor import DOCXProcessor
+from app.services.processors.markdown_processor import MarkdownProcessor
 from app.services.processors.ppt_processor import PPTProcessor
 from app.services.processors.pdf_processor import PDFProcessor
 
@@ -21,6 +22,7 @@ class DocumentProcessor:
         ".pdf": PDFProcessor,
         ".ppt": PPTProcessor,
         ".pptx": PPTProcessor,
+        ".md": MarkdownProcessor,
 
         # Future expandable
         # ".png": ImageProcessor,
