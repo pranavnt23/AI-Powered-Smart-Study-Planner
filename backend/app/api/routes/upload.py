@@ -10,6 +10,8 @@ from app.core.database import SessionLocal
 from app.services.document_processor import DocumentProcessor
 from app.schemas.upload_schema import UploadResponseSchema
 from app.models.uploaded_file import UploadedFile
+from app.models.extracted_document import ExtractedDocument
+from app.models.document_chunk import DocumentChunk
 
 
 router = APIRouter(
@@ -59,7 +61,35 @@ async def upload_file(
         db.add(uploaded_file)
         db.commit()
         db.refresh(uploaded_file)
-        result = DocumentProcessor.process_document(str(file_path))
+        result = DocumentProcessor.process_document(
+            str(file_path)
+        )
+
+        if result["status"]:
+
+            extracted_document = ExtractedDocument(
+                file_id=uploaded_file.id,
+                extracted_text=result["data"]["clean_text"]
+            )
+
+            db.add(extracted_document)
+            db.commit()
+            db.refresh(extracted_document)
+
+            for chunk in result["data"]["chunks"]:
+
+                chunk_record = DocumentChunk(
+                    document_id=extracted_document.id,
+                    chunk_index=chunk["chunk_index"],
+                    chunk_text=chunk["chunk_text"],
+                    word_count=chunk["word_count"]
+                )
+
+                db.add(chunk_record)
+
+            db.commit()
+
+        processed_data = result["data"]
 
         # If the processor returned a nested data payload, unwrap it. Otherwise
         # return the processor result directly so frontend receives extracted text.
