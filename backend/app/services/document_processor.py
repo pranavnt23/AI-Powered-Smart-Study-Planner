@@ -5,6 +5,8 @@ from app.services.processors.docx_processor import DOCXProcessor
 from app.services.processors.markdown_processor import MarkdownProcessor
 from app.services.processors.ppt_processor import PPTProcessor
 from app.services.processors.pdf_processor import PDFProcessor
+from app.services.text_cleaner import TextCleaner
+from app.services.chunk_services import ChunkService
 
 # Future imports
 # from app.services.processors.image_processor import ImageProcessor
@@ -49,10 +51,24 @@ class DocumentProcessor:
             # Process file
             result = processor.extract_text(file_path)
 
+            #Clean text
+            clean_text = TextCleaner.clean_text(
+            result["content"]
+            )
+
+            # Chunk text
+            chunks = ChunkService.chunk_text(
+            clean_text
+            )
+
             return {
                 "status": True,
                 "message": "Document processed successfully",
-                "data": result
+                "data": {
+                    **result,
+                    "clean_text": clean_text,
+                    "chunks": chunks
+                }
             }
 
         except Exception as e:
