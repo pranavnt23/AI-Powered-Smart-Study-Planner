@@ -91,6 +91,10 @@ async def upload_file(
 
         processed_data = result["data"]
 
+        # If the processor returned a nested data payload, unwrap it. Otherwise
+        # return the processor result directly so frontend receives extracted text.
+        processed_data = result["data"] if isinstance(result, dict) and "data" in result else result
+
         return {
             "status": True,
             "message": "File uploaded successfully",
