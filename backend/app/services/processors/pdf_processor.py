@@ -1,13 +1,33 @@
-﻿from pathlib import Path
+import os
+import tempfile
+from pathlib import Path
 from PyPDF2 import PdfReader
+from pdf2image import convert_from_path
+from app.services.processors.image_processor import ImageProcessor
 
 
 class PDFProcessor:
+    """
+    Processor for handling PDF files, extracting digital text page-by-page,
+    and dynamically falling back to Tesseract OCR for scanned/image-only pages.
+    """
+
     @staticmethod
     def extract_text(file_path: str) -> dict:
         try:
             reader = PdfReader(file_path)
             extracted_lines = []
+
+            # Determine local poppler path for PDF to image conversion
+            poppler_path = None
+            potential_poppler_paths = [
+                r"C:\Users\prana\.gemini\antigravity-ide\scratch\AI Invoice Processing\bin\poppler-24.08.0\Library\bin",
+                r"C:\Users\prana\.gemini\antigravity\scratch\AI Invoice Processing\bin\poppler-24.08.0\Library\bin",
+            ]
+            for p in potential_poppler_paths:
+                if Path(p).exists():
+                    poppler_path = p
+                    break
 
             def append_text(text: str):
                 if not text:
@@ -16,9 +36,43 @@ class PDFProcessor:
                 if cleaned:
                     extracted_lines.append(cleaned)
 
-            for page in reader.pages:
+            # Loop page-by-page for hybrid extraction
+            for page_num, page in enumerate(reader.pages, start=1):
                 text = page.extract_text() or ""
-                for line in text.splitlines():
+                page_text = text.strip()
+
+                # If standard digital extraction is empty or very short, fall back to OCR
+                if len(page_text) < 10:
+                    # Convert only this page to an image
+                    images = convert_from_path(
+                        file_path,
+                        first_page=page_num,
+                        last_page=page_num,
+                        poppler_path=poppler_path,
+                    )
+                    if images:
+                        page_image = images[0]
+
+                        # Save temporarily to run through the standard ImageProcessor
+                        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_img:
+                            temp_img_name = temp_img.name
+
+                        try:
+                            page_image.save(temp_img_name, "PNG")
+
+                            # Extract text using ImageProcessor (which runs preprocessing + Tesseract OCR)
+                            ocr_result = ImageProcessor.extract_text(temp_img_name)
+                            if ocr_result["status"]:
+                                page_text = ocr_result["content"]
+                            else:
+                                page_text = ""
+                        finally:
+                            # Clean up temporary page image file
+                            if os.path.exists(temp_img_name):
+                                os.unlink(temp_img_name)
+
+                # Process extracted page lines
+                for line in page_text.splitlines():
                     append_text(line)
 
             extracted_text = "\n".join(extracted_lines)

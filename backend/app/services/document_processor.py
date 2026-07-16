@@ -8,8 +8,7 @@ from app.services.processors.pdf_processor import PDFProcessor
 from app.services.text_cleaner import TextCleaner
 from app.services.chunk_services import ChunkService
 
-# Future imports
-# from app.services.processors.image_processor import ImageProcessor
+from app.services.processors.image_processor import ImageProcessor
 
 
 class DocumentProcessor:
@@ -26,10 +25,12 @@ class DocumentProcessor:
         ".pptx": PPTProcessor,
         ".md": MarkdownProcessor,
 
-        # Future expandable
-        # ".png": ImageProcessor,
-        # ".jpg": ImageProcessor,
-        # ".jpeg": ImageProcessor,
+        ".png": ImageProcessor,
+        ".jpg": ImageProcessor,
+        ".jpeg": ImageProcessor,
+        ".bmp": ImageProcessor,
+        ".tiff": ImageProcessor,
+        ".tif": ImageProcessor,
     }
 
     @classmethod
