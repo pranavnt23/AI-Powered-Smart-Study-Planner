@@ -11,3 +11,10 @@ python-docx==1.1.0
 python-pptx==0.6.21
 PyPDF2==3.0.0
 python-multipart==0.0.9
+pytesseract
+Pillow
+pdf2image
+opencv-python-headless
+sentence-transformers
+chromadb
+httpx

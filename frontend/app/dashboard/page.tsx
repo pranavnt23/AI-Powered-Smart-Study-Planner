@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -114,9 +114,14 @@ export default function DashboardPage() {
       time: getCurrentTime(),
     };
 
+    const assistantMessage = {
+      from: "assistant" as const,
+      message: "AI is thinking...",
+      time: getCurrentTime(),
+    };
+
     setConversations((previous) =>
       previous.map((conversation) => {
-
         if (conversation.id !== selectedChatId) {
           return conversation;
         }
@@ -128,6 +133,7 @@ export default function DashboardPage() {
           messages: [
             ...conversation.messages,
             userMessage,
+            assistantMessage,
           ],
         };
       })
@@ -135,39 +141,78 @@ export default function DashboardPage() {
 
     setChatInput("");
 
-    // AI RESPONSE USING DOCUMENT CONTENT
+    // Call live RAG backend endpoint and stream response token-by-token
+    try {
+      const response = await fetch("http://localhost:8000/chat/query", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question: messageText || "Please summarize the uploaded files.",
+          user_id: 1, // Standard default user ID
+        }),
+      });
 
-    const extractedText = uploadedAttachments
-      .map((file) => file.content)
-      .filter(Boolean)
-      .join("\n\n");
+      if (!response.ok || !response.body) {
+        throw new Error("Failed to connect to local RAG server stream.");
+      }
 
-    if (extractedText) {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedText = "";
+      let isFirstChunk = true;
 
-      setTimeout(() => {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const textChunk = decoder.decode(value, { stream: true });
+        accumulatedText += textChunk;
 
         setConversations((previous) =>
           previous.map((conversation) => {
-
             if (conversation.id !== selectedChatId) {
               return conversation;
             }
 
+            const updatedMessages = [...conversation.messages];
+            if (updatedMessages.length > 0) {
+              updatedMessages[updatedMessages.length - 1] = {
+                ...updatedMessages[updatedMessages.length - 1],
+                message: accumulatedText,
+              };
+            }
+
             return {
               ...conversation,
-              messages: [
-                ...conversation.messages,
-                {
-                  from: "assistant",
-                  message: extractedText,
-                  time: getCurrentTime(),
-                },
-              ],
+              messages: updatedMessages,
             };
           })
         );
+      }
+    } catch (error) {
+      console.error("Stream generation error:", error);
+      setConversations((previous) =>
+        previous.map((conversation) => {
+          if (conversation.id !== selectedChatId) {
+            return conversation;
+          }
 
-      }, 1200);
+          const errorMessages = [...conversation.messages];
+          if (errorMessages.length > 0) {
+            errorMessages[errorMessages.length - 1] = {
+              ...errorMessages[errorMessages.length - 1],
+              message: "[Generation Error: Could not connect to local study planner RAG server. Ensure backend is running and Ollama is active.]",
+            };
+          }
+
+          return {
+            ...conversation,
+            messages: errorMessages,
+          };
+        })
+      );
     }
   };
 
