@@ -81,3 +81,50 @@ class LLMService:
                 f"Ollama connection failed. Ensure Ollama is running (`ollama serve`) "
                 f"and you have pulled the model using `ollama pull {model_name}`."
             )
+
+    @classmethod
+    async def stream_answer(
+        cls,
+        question: str,
+        context: str,
+        model_name: str = "llama3",
+        temperature: float = 0.0
+    ):
+        """
+        Asynchronously streams a grounded QA response from the local Ollama LLM instance
+        using chunked SSE transfer. Suitable for real-time interactive user interfaces.
+        """
+        import json
+        url = f"{OLLAMA_URL}/api/generate"
+        system_prompt = cls.SYSTEM_PROMPT_TEMPLATE.format(context=context)
+
+        payload = {
+            "model": model_name,
+            "prompt": question,
+            "system": system_prompt,
+            "stream": True,
+            "options": {
+                "temperature": temperature,
+                "top_p": 0.9
+            }
+        }
+
+        logger.info(f"Initiating streaming connection to Ollama ({model_name}) at: {url}...")
+        try:
+            # Using HTTPX async client to stream line-by-line
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                async with client.stream("POST", url, json=payload) as response:
+                    response.raise_for_status()
+                    async for line in response.aiter_lines():
+                        if not line:
+                            continue
+                        try:
+                            data = json.loads(line)
+                            token = data.get("response", "")
+                            if token:
+                                yield token
+                        except Exception:
+                            continue
+        except Exception as error:
+            logger.error(f"Error during Ollama stream: {str(error)}")
+            yield f"\n[Generation Error: {str(error)}]"

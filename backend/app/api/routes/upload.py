@@ -12,6 +12,8 @@ from app.schemas.upload_schema import UploadResponseSchema
 from app.models.uploaded_file import UploadedFile
 from app.models.extracted_document import ExtractedDocument
 from app.models.document_chunk import DocumentChunk
+from app.services.embedding_service import EmbeddingService
+from app.services.vector_store import VectorStore
 
 
 router = APIRouter(
@@ -76,24 +78,64 @@ async def upload_file(
             db.commit()
             db.refresh(extracted_document)
 
+            chunk_records = []
             for chunk in result["data"]["chunks"]:
-
                 chunk_record = DocumentChunk(
                     document_id=extracted_document.id,
                     chunk_index=chunk["chunk_index"],
                     chunk_text=chunk["chunk_text"],
                     word_count=chunk["word_count"]
                 )
-
                 db.add(chunk_record)
+                chunk_records.append(chunk_record)
 
             db.commit()
 
-        processed_data = result["data"]
+            # End-to-end RAG Integration: Generate embeddings and store in ChromaDB
+            try:
+                texts = [c.chunk_text for c in chunk_records]
+                if texts:
+                    logger.info(f"Generating embeddings for {len(texts)} chunks of file: {uploaded_file.file_name}")
+                    embeddings = EmbeddingService.generate_embeddings_batch(texts)
 
-        # If the processor returned a nested data payload, unwrap it. Otherwise
-        # return the processor result directly so frontend receives extracted text.
+                    chroma_ids = []
+                    chroma_embeddings = []
+                    chroma_documents = []
+                    chroma_metadatas = []
+
+                    for idx, chunk_rec in enumerate(chunk_records):
+                        chroma_ids.append(f"chunk_{chunk_rec.id}")
+                        chroma_embeddings.append(embeddings[idx])
+                        chroma_documents.append(chunk_rec.chunk_text)
+                        chroma_metadatas.append({
+                            "file_id": str(uploaded_file.id),
+                            "user_id": str(uploaded_file.user_id),
+                            "file_name": uploaded_file.file_name,
+                            "chunk_index": chunk_rec.chunk_index
+                        })
+
+                    logger.info(f"Storing vectors in ChromaDB collection 'study_materials' for: {uploaded_file.file_name}")
+                    VectorStore.insert_vectors(
+                        collection_name="study_materials",
+                        ids=chroma_ids,
+                        embeddings=chroma_embeddings,
+                        documents=chroma_documents,
+                        metadatas=chroma_metadatas
+                    )
+
+                uploaded_file.processing_status = "processed"
+                db.commit()
+            except Exception as embed_err:
+                logger.error(f"Failed to generate/store embeddings for file {uploaded_file.file_name}: {str(embed_err)}")
+                uploaded_file.processing_status = "failed"
+                db.commit()
+                raise embed_err
+
+        # Unwrap processor nested result and inject key properties for frontend compatibility
         processed_data = result["data"] if isinstance(result, dict) and "data" in result else result
+        if isinstance(processed_data, dict):
+            processed_data["content"] = processed_data.get("clean_text", "")
+            processed_data["text"] = processed_data.get("clean_text", "")
 
         return {
             "status": True,

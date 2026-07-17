@@ -7,7 +7,8 @@ export async function uploadDocument(file: File) {
 
     const response = await api.post(
       "/upload/",
-      formData
+      formData,
+      { timeout: 120000 }
     );
 
     const result = response.data;
