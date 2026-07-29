@@ -84,7 +84,8 @@ async def upload_file(
                     document_id=extracted_document.id,
                     chunk_index=chunk["chunk_index"],
                     chunk_text=chunk["chunk_text"],
-                    word_count=chunk["word_count"]
+                    word_count=chunk["word_count"],
+                    page_number=chunk.get("page_number", 1)
                 )
                 db.add(chunk_record)
                 chunk_records.append(chunk_record)
@@ -111,7 +112,8 @@ async def upload_file(
                             "file_id": str(uploaded_file.id),
                             "user_id": str(uploaded_file.user_id),
                             "file_name": uploaded_file.file_name,
-                            "chunk_index": chunk_rec.chunk_index
+                            "chunk_index": chunk_rec.chunk_index,
+                            "page_number": chunk_rec.page_number
                         })
 
                     logger.info(f"Storing vectors in ChromaDB collection 'study_materials' for: {uploaded_file.file_name}")
@@ -122,6 +124,7 @@ async def upload_file(
                         documents=chroma_documents,
                         metadatas=chroma_metadatas
                     )
+
 
                 uploaded_file.processing_status = "processed"
                 db.commit()
@@ -136,6 +139,7 @@ async def upload_file(
         if isinstance(processed_data, dict):
             processed_data["content"] = processed_data.get("clean_text", "")
             processed_data["text"] = processed_data.get("clean_text", "")
+            processed_data["file_id"] = str(uploaded_file.id)
 
         return {
             "status": True,

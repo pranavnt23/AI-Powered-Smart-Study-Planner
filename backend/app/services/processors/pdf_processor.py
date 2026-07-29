@@ -17,6 +17,7 @@ class PDFProcessor:
         try:
             reader = PdfReader(file_path)
             extracted_lines = []
+            pages_data = []
 
             # Determine local poppler path for PDF to image conversion
             poppler_path = None
@@ -28,13 +29,6 @@ class PDFProcessor:
                 if Path(p).exists():
                     poppler_path = p
                     break
-
-            def append_text(text: str):
-                if not text:
-                    return
-                cleaned = text.strip()
-                if cleaned:
-                    extracted_lines.append(cleaned)
 
             # Loop page-by-page for hybrid extraction
             for page_num, page in enumerate(reader.pages, start=1):
@@ -72,8 +66,17 @@ class PDFProcessor:
                                 os.unlink(temp_img_name)
 
                 # Process extracted page lines
+                page_lines = []
                 for line in page_text.splitlines():
-                    append_text(line)
+                    cleaned = line.strip()
+                    if cleaned:
+                        page_lines.append(cleaned)
+                        extracted_lines.append(cleaned)
+
+                pages_data.append({
+                    "page_number": page_num,
+                    "text": "\n".join(page_lines)
+                })
 
             extracted_text = "\n".join(extracted_lines)
 
@@ -82,6 +85,7 @@ class PDFProcessor:
                 "file_type": "pdf",
                 "file_name": Path(file_path).name,
                 "content": extracted_text,
+                "pages": pages_data
             }
 
         except Exception as error:
@@ -90,5 +94,6 @@ class PDFProcessor:
                 "file_type": "pdf",
                 "file_name": Path(file_path).name,
                 "content": "",
+                "pages": [],
                 "error": str(error),
             }

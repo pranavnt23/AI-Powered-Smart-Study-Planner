@@ -17,6 +17,7 @@ type ChatFooterProps = {
     attachmentNames?: {
       name: string;
       content: string | null;
+      fileId?: string | null;
     }[]
   ) => Promise<void>;
 };
@@ -26,6 +27,7 @@ type Attachment = {
   name: string;
   type: string;
   content: string | null;
+  fileId: string | null;
 };
 
 const getFileIcon = (name: string) => {
@@ -143,6 +145,7 @@ export function ChatFooter({
                 response?.text ??
                 response?.data?.content ??
                 null,
+              fileId: response?.file_id ?? response?.data?.file_id ?? null,
             };
           } catch {
             return {
@@ -150,6 +153,7 @@ export function ChatFooter({
               name: file.name,
               type: typeLabel ?? "FILE",
               content: "Unable to process file",
+              fileId: null,
             };
           }
         })
@@ -200,6 +204,7 @@ export function ChatFooter({
         attachments.map((attachment) => ({
           name: attachment.name,
           content: attachment.content,
+          fileId: attachment.fileId,
         }))
       );
 

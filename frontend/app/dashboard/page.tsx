@@ -100,6 +100,7 @@ export default function DashboardPage() {
     uploadedAttachments: {
       name: string;
       content: string | null;
+      fileId?: string | null;
     }[] = []
   ): Promise<void> => {
 
@@ -151,6 +152,7 @@ export default function DashboardPage() {
         body: JSON.stringify({
           question: messageText || "Please summarize the uploaded files.",
           user_id: 1, // Standard default user ID
+          file_ids: uploadedAttachments.map((file) => file.fileId).filter(Boolean),
         }),
       });
 

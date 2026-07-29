@@ -10,7 +10,11 @@ from app.core.database import (
     engine
 )
 
+# Register models for automatic creation on startup
+from app.models.chat_message import ChatMessage
+
 Base.metadata.create_all(bind=engine)
+
 
 from fastapi.middleware.cors import CORSMiddleware
 
