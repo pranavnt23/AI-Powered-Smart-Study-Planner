@@ -30,6 +30,13 @@ class PDFProcessor:
                     poppler_path = p
                     break
 
+            def append_text(text: str):
+                if not text:
+                    return
+                cleaned = text.strip()
+                if cleaned:
+                    extracted_lines.append(cleaned)
+
             # Loop page-by-page for hybrid extraction
             for page_num, page in enumerate(reader.pages, start=1):
                 text = page.extract_text() or ""
@@ -66,17 +73,8 @@ class PDFProcessor:
                                 os.unlink(temp_img_name)
 
                 # Process extracted page lines
-                page_lines = []
                 for line in page_text.splitlines():
-                    cleaned = line.strip()
-                    if cleaned:
-                        page_lines.append(cleaned)
-                        extracted_lines.append(cleaned)
-
-                pages_data.append({
-                    "page_number": page_num,
-                    "text": "\n".join(page_lines)
-                })
+                    append_text(line)
 
             extracted_text = "\n".join(extracted_lines)
 
