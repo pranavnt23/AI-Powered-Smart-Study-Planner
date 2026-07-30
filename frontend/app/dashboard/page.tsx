@@ -100,6 +100,7 @@ export default function DashboardPage() {
     uploadedAttachments: {
       name: string;
       content: string | null;
+      fileId?: string | null;
     }[] = []
   ): Promise<void> => {
 

@@ -41,7 +41,13 @@ class DocumentChunk(Base):
         nullable=True
     )
 
+    page_number = Column(
+        Integer,
+        nullable=True,
+        default=1
+    )
+
     created_at = Column(
         TIMESTAMP(timezone=True),
         server_default=func.now()
-    )
+    )

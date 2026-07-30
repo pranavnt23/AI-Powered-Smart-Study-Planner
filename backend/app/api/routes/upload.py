@@ -84,7 +84,8 @@ async def upload_file(
                     document_id=extracted_document.id,
                     chunk_index=chunk["chunk_index"],
                     chunk_text=chunk["chunk_text"],
-                    word_count=chunk["word_count"]
+                    word_count=chunk["word_count"],
+                    page_number=chunk.get("page_number", 1)
                 )
                 db.add(chunk_record)
                 chunk_records.append(chunk_record)

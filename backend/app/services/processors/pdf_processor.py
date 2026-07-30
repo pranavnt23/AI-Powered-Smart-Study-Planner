@@ -17,6 +17,7 @@ class PDFProcessor:
         try:
             reader = PdfReader(file_path)
             extracted_lines = []
+            pages_data = []
 
             # Determine local poppler path for PDF to image conversion
             poppler_path = None
@@ -82,6 +83,7 @@ class PDFProcessor:
                 "file_type": "pdf",
                 "file_name": Path(file_path).name,
                 "content": extracted_text,
+                "pages": pages_data
             }
 
         except Exception as error:
@@ -90,5 +92,6 @@ class PDFProcessor:
                 "file_type": "pdf",
                 "file_name": Path(file_path).name,
                 "content": "",
+                "pages": [],
                 "error": str(error),
             }
