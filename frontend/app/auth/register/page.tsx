@@ -6,26 +6,26 @@ export default function RegisterPage() {
   return (
     <main className="min-h-screen flex items-center justify-center px-6 py-12">
 
-      <div className="w-full max-w-md bg-white/5 border border-white/10 backdrop-blur-2xl rounded-[32px] p-8 shadow-2xl">
+      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-lg p-8 shadow-sm">
 
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-black mb-3">
+          <h1 className="text-3xl font-bold mb-3 text-white">
             Create Account
           </h1>
 
-          <p className="text-slate-300">
+          <p className="text-slate-400 text-sm">
             Start building your smart learning workflow
           </p>
         </div>
 
         <RegisterForm />
 
-        <p className="text-center text-slate-300 mt-6">
+        <p className="text-center text-slate-400 mt-6 text-sm">
           Already have an account?{" "}
 
           <Link
             href="/auth/login"
-            className="text-cyan-300 hover:text-cyan-200 underline underline-offset-2 font-semibold"
+            className="text-blue-400 hover:text-blue-300 font-semibold"
           >
             Login
           </Link>

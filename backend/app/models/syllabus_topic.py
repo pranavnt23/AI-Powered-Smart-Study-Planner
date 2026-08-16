@@ -20,3 +20,7 @@ class SyllabusTopic(Base):
     estimated_hours = Column(Float)
     difficulty_level = Column(String)
     priority_rank = Column(Integer)
+    unit_title = Column(String(255), nullable=True)
+    dependencies = Column(Text, nullable=True)
+    priority = Column(String(50), nullable=True)
+    reasoning = Column(Text, nullable=True)

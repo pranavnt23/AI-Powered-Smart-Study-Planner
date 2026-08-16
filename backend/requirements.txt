@@ -18,3 +18,6 @@ opencv-python-headless
 sentence-transformers
 chromadb
 httpx
+alembic
+rank-bm25
+
