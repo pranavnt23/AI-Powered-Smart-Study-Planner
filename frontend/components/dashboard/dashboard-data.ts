@@ -2,6 +2,7 @@ import { ChatConversation, DashboardSection, PastScheduleEntry, ScheduleItem } f
 
 export const navItems: { id: DashboardSection; label: string }[] = [
   { id: "chat", label: "Chat" },
+  { id: "library", label: "Library" },
   { id: "schedules", label: "Schedules" },
   { id: "profile", label: "Profile" },
 ];

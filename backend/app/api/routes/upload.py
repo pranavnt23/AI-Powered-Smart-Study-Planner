@@ -112,7 +112,8 @@ async def upload_file(
                             "file_id": str(uploaded_file.id),
                             "user_id": str(uploaded_file.user_id),
                             "file_name": uploaded_file.file_name,
-                            "chunk_index": chunk_rec.chunk_index
+                            "chunk_index": chunk_rec.chunk_index,
+                            "page_number": chunk_rec.page_number
                         })
 
                     logger.info(f"Storing vectors in ChromaDB collection 'study_materials' for: {uploaded_file.file_name}")
@@ -123,6 +124,7 @@ async def upload_file(
                         documents=chroma_documents,
                         metadatas=chroma_metadatas
                     )
+
 
                 uploaded_file.processing_status = "processed"
                 db.commit()
@@ -137,6 +139,7 @@ async def upload_file(
         if isinstance(processed_data, dict):
             processed_data["content"] = processed_data.get("clean_text", "")
             processed_data["text"] = processed_data.get("clean_text", "")
+            processed_data["file_id"] = str(uploaded_file.id)
 
         return {
             "status": True,
@@ -150,3 +153,28 @@ async def upload_file(
             "status": False,
             "message": str(e)
         }
+
+
+@router.get("/files")
+def list_uploaded_files(
+    user_id: int = 1,
+    db: Session = Depends(get_db)
+):
+    """
+    Retrieve list of all uploaded files for the active user.
+    """
+    files = db.query(UploadedFile).filter(UploadedFile.user_id == user_id).order_by(UploadedFile.uploaded_at.desc()).all()
+    return {
+        "status": True,
+        "files": [
+            {
+                "id": str(f.id),
+                "file_name": f.file_name,
+                "file_type": f.file_type,
+                "file_size": f.file_size,
+                "processing_status": f.processing_status,
+                "uploaded_at": f.uploaded_at.isoformat() if f.uploaded_at else None
+            }
+            for f in files
+        ]
+    }

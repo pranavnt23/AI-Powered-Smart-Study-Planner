@@ -1,12 +1,12 @@
-from sqlalchemy import Column, String, Text, Integer, TIMESTAMP, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, String, Integer, TIMESTAMP, JSON
 from sqlalchemy.sql import func
 from app.core.database import Base, GUID
 import uuid
 import datetime
 
-class ChatMessage(Base):
-    __tablename__ = "chat_messages"
+
+class Summary(Base):
+    __tablename__ = "summaries"
 
     id = Column(
         GUID,
@@ -14,29 +14,31 @@ class ChatMessage(Base):
         default=uuid.uuid4
     )
 
-    session_id = Column(
-        GUID,
-        ForeignKey("conversations.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True
-    )
-
-    session = relationship("Conversation", back_populates="messages")
-
     user_id = Column(
         Integer,
         nullable=False
     )
 
-    role = Column(
-        String(50),
-        nullable=False
-    )  # 'user' or 'assistant'
+    file_id = Column(
+        GUID,
+        nullable=False,
+        index=True
+    )
 
-    content = Column(
-        Text,
+    title = Column(
+        String(255),
         nullable=False
     )
+
+    granularity = Column(
+        String(50),
+        nullable=False
+    )  # 'bullet', 'detailed'
+
+    summary_data = Column(
+        JSON,
+        nullable=False
+    )  # Structured JSON matching Pydantic SummarySchema
 
     created_at = Column(
         TIMESTAMP(timezone=True),
@@ -44,4 +46,3 @@ class ChatMessage(Base):
         server_default=func.now(),
         nullable=False
     )
-

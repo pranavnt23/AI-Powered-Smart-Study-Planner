@@ -12,6 +12,9 @@ desktop.ini
 *.sln
 *.swp
 
+# Local vector database
+backend/app/chroma_db/
+
 # Python cache and artifacts
 __pycache__/
 *.py[cod]

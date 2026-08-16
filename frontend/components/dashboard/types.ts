@@ -1,10 +1,18 @@
-export type DashboardSection = "chat" | "schedules" | "profile";
+export type DashboardSection = "chat" | "library" | "schedules" | "profile";
+
+export type CitationInfo = {
+  citation: string;
+  document: string;
+  page?: number;
+  text?: string;
+};
 
 export type ChatMessage = {
   from: "assistant" | "user";
   message: string;
   time: string;
   attachments?: string[];
+  citations?: CitationInfo[];
 };
 
 export type ChatConversation = {
